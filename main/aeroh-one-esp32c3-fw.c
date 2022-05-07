@@ -5,6 +5,7 @@
 #include "version.h"
 #include "storage.h"
 #include "state_machine.h"
+#include "status_led.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -16,7 +17,10 @@ void app_main(void)
 
     if (initialize_flash_store() != SUCCESS) {
         LOGE("Couldn't initialize flash store!");
+        display_startup_error();
     }
 
     start_state_machine();
+
+    xTaskCreate(vStatusLEDTask, "status_led", 4*1024, NULL, 1, NULL);
 }
