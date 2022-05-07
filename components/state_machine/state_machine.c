@@ -12,6 +12,7 @@
 #include "errors.h"
 #include "logging.h"
 #include "storage.h"
+#include "bluetooth_service.h"
 
 #include "state_machine.h"
 
@@ -23,10 +24,21 @@ void initialize_or_get_current_state();
 error_t get_state_machine_state();
 error_t set_state_machine_state(const int32_t new_machine_state);
 
+void run_current_state_callback(void) {
+    switch(machine_state) {
+        case MACHINE_STATE_NEW:
+            initialize_bluetooth(); // TODO add failure condition
+            break;
+        default:
+            LOGE("State callback not implimented for state: %d", machine_state);
+    }
+}
+
 error_t start_state_machine() {
     LOGI("Starting State Machine");
     initialize_or_get_current_state();
     LOGI("Current Machine State: %d", machine_state);
+    run_current_state_callback();
     return SUCCESS;
 }
 
