@@ -123,101 +123,84 @@ void display_startup_error(void) {
 
 void vStatusLEDTask(void *pvParameters) {
     initialize();
+    LOGI("STATUS LED State Update: %d", get_current_state_from_ram());
 
     while(1) {
         switch(get_current_state_from_ram()) {
             case MACHINE_STATE_EMPTY:
             case MACHINE_STATE_NEW:
-                LOGI("STATUS LED State Update: MACHINE_STATE_NEW");
                 set_color_intensity(0, 0, 1);
                 strobe();
                 break;
 
             case MACHINE_STATE_PROVISIONING_BT_CONNECTED:
-                LOGI("STATUS LED State Update: MACHINE_STATE_PROVISIONING_BT_CONNECTED");
                 set_color_intensity(0, 0, 1);
                 solid();
                 break;
             case MACHINE_STATE_PROVISIONING_BT_TRANSFER:
-                LOGI("STATUS LED State Update: MACHINE_STATE_PROVISIONING_BT_TRANSFER");
                 set_color_intensity(0, 0, 1);
                 rapid_blink();
                 break;
             case MACHINE_STATE_PROVISIONING_WIFI_CONNECTING:
-                LOGI("STATUS LED State Update: MACHINE_STATE_PROVISIONING_WIFI_CONNECTING");
                 set_color_intensity(1, 1, 1);
                 rapid_blink();
                 break;
             case MACHINE_STATE_PROVISIONING_MQTT_CONNECTING:
-                LOGI("STATUS LED State Update: MACHINE_STATE_PROVISIONING_MQTT_CONNECTING");
                 set_color_intensity(1, 1, 1);
                 solid();
                 break;
             case MACHINE_STATE_PROVISIONING_CONNECTED:
-                LOGI("STATUS LED State Update: MACHINE_STATE_PROVISIONING_CONNECTED");
                 set_color_intensity(0, 1, 0);
                 solid();
                 break;
 
             case MACHINE_STATE_TRAINING_READY:
-                LOGI("STATUS LED State Update: MACHINE_STATE_TRAINING_READY");
                 set_color_intensity(1, 0, 1);
                 strobe();
                 break;
             case MACHINE_STATE_TRAINING_DOWNLOADING:
-                LOGI("STATUS LED State Update: MACHINE_STATE_TRAINING_DOWNLOADING");
                 set_color_intensity(1, 0, 1);
                 rapid_blink();
                 break;
             case MACHINE_STATE_TRAINING_COMPLETE:
-                LOGI("STATUS LED State Update: MACHINE_STATE_TRAINING_COMPLETE");
                 set_color_intensity(0, 1, 0);
                 solid();
                 break;
             case MACHINE_STATE_TRAINING_RECORD_READY:
-                LOGI("STATUS LED State Update: MACHINE_STATE_TRAINING_RECORD_READY");
                 set_color_intensity(1, 0, 1);
                 solid();
                 break;
             case MACHINE_STATE_TRAINING_RECORDING:
-                LOGI("STATUS LED State Update: MACHINE_STATE_TRAINING_RECORDING");
                 set_color_intensity(1, 1, 0);
                 solid();
                 break;
             case MACHINE_STATE_TRAINING_RECORDED:
-                LOGI("STATUS LED State Update: MACHINE_STATE_TRAINING_RECORDED");
                 set_color_intensity(1, 0, 1);
                 rapid_blink();
                 break;
 
             case MACHINE_STATE_ACTIVE_DUTY_CONNECTED:
-                LOGI("STATUS LED State Update: MACHINE_STATE_ACTIVE_DUTY_CONNECTED");
                 set_color_intensity(0, 0, 0);
                 clear();
                 break;
             case MACHINE_STATE_ACTIVE_DUTY_RUNNING_CMD:
-                LOGI("STATUS LED State Update: MACHINE_STATE_ACTIVE_DUTY_RUNNING_CMD");
                 set_color_intensity(1, 0, 0);
                 solid();
                 break;
 
             case MACHINE_STATE_RESET_BUTTON_HOLD:
-                LOGI("STATUS LED State Update: MACHINE_STATE_RESET_BUTTON_HOLD");
                 set_color_intensity(0, 1, 1);
                 slow_blink();
                 break;
             case MACHINE_STATE_RESET_CLEAR_WIFI:
-                LOGI("STATUS LED State Update: MACHINE_STATE_RESET_CLEAR_WIFI");
                 set_color_intensity(0, 1, 1);
                 rapid_blink();
                 break;
             case MACHINE_STATE_RESET_CLEAR_WIFI_MQTT:
-                LOGI("STATUS LED State Update: MACHINE_STATE_RESET_CLEAR_WIFI_MQTT");
                 set_color_intensity(0, 1, 1);
                 rapid_blink();
                 break;
             case MACHINE_STATE_RESET_CLEAR_WIFI_MQTT_TRAINING:
-                LOGI("STATUS LED State Update: MACHINE_STATE_RESET_CLEAR_WIFI_MQTT_TRAINING");
                 set_color_intensity(0, 1, 1);
                 rapid_blink();
                 break;
