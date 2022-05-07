@@ -1,0 +1,11 @@
+menu "Aeroh One Firmware Config"
+
+    config APP_ID
+        string "Application ID"
+        default "aeroh_one"
+        help
+            Application identifier that is used by the logging module, and the storage module.
+            If you change this, the namespace on the storage module will change, and therefore,
+            the device will act as a new devices, without any data. Restoring the old value
+            will have the reverse effect.
+endmenu
