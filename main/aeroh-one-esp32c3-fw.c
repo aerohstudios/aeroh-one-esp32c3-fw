@@ -4,6 +4,7 @@
 #include "errors.h"
 #include "version.h"
 #include "storage.h"
+#include "state_machine.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -16,4 +17,6 @@ void app_main(void)
     if (initialize_flash_store() != SUCCESS) {
         LOGE("Couldn't initialize flash store!");
     }
+
+    start_state_machine();
 }
