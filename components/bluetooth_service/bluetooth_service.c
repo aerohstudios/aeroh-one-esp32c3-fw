@@ -14,6 +14,8 @@
 #include "blufi_adapter.h"
 #include "esp_blufi.h"
 
+#include "cJSON.h"
+
 static void aeroh_one_event_callback(esp_blufi_cb_event_t event, esp_blufi_cb_param_t *param);
 
 #define WIFI_LIST_NUM   10
@@ -313,6 +315,26 @@ static void aeroh_one_event_callback(esp_blufi_cb_event_t event, esp_blufi_cb_pa
         recv_msg[param->custom_data.data_len] = '\0';
         BLUFI_INFO("Custom Data 2: %s\n", recv_msg);
 
+        cJSON *root = cJSON_Parse(recv_msg);
+
+        if (cJSON_GetObjectItem(root, "certificate_pem")) {
+            char *certificate_pem = cJSON_GetObjectItem(root, "certificate_pem")->valuestring;
+            BLUFI_INFO("certificate_pem=%s", certificate_pem);
+        }
+
+        if (cJSON_GetObjectItem(root, "certificate_public_key")) {
+            char *certificate_public_key = cJSON_GetObjectItem(root, "certificate_public_key")->valuestring;
+            BLUFI_INFO("certificate_public_key=%s", certificate_public_key);
+        }
+
+        if (cJSON_GetObjectItem(root, "certificate_private_key")) {
+            char *certificate_private_key = cJSON_GetObjectItem(root, "certificate_private_key")->valuestring;
+            BLUFI_INFO("certificate_private_key=%s", certificate_private_key);
+        }
+
+        unsigned char reply_msg[6] = "Ack";
+        esp_blufi_send_custom_data(reply_msg, 6);
+
         break;
 	case ESP_BLUFI_EVENT_RECV_USERNAME:
         /* Not handle currently */
@@ -336,8 +358,6 @@ static void aeroh_one_event_callback(esp_blufi_cb_event_t event, esp_blufi_cb_pa
         break;
     }
 }
-
-/** ==== **/
 
 static esp_blufi_callbacks_t aeroh_one_blufi_callbacks = {
     .event_cb = aeroh_one_event_callback,
