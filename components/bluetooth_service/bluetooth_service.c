@@ -1,13 +1,7 @@
 #include "errors.h"
 #include "logging.h"
 
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/event_groups.h"
-#include "esp_system.h"
 #include "esp_wifi.h"
-#include "esp_event.h"
-#include "esp_log.h"
 
 #include "esp_bt.h"
 #include "esp_blufi_api.h"
@@ -70,42 +64,13 @@ static void aeroh_one_event_callback(esp_blufi_cb_event_t event, esp_blufi_cb_pa
         esp_wifi_connect();
         break;
     case ESP_BLUFI_EVENT_REQ_DISCONNECT_FROM_AP:
-        // no-use
         /* Not handle currently */
-
-        /* BLUFI_INFO("BLUFI requset wifi disconnect from AP\n"); */
-        /* esp_wifi_disconnect(); */
-
         break;
     case ESP_BLUFI_EVENT_REPORT_ERROR:
-        // no-use
         /* Not handle currently */
-
-        /* BLUFI_ERROR("BLUFI report error, error code %d\n", param->report_error.state); */
-        /* esp_blufi_send_error_info(param->report_error.state); */
-
         break;
     case ESP_BLUFI_EVENT_GET_WIFI_STATUS: {
-        // no-use
         /* Not handle currently */
-
-        /* wifi_mode_t mode; */
-        /* esp_blufi_extra_info_t info; */
-
-        /* esp_wifi_get_mode(&mode); */
-
-        /* if (gl_sta_connected) { */
-        /*     memset(&info, 0, sizeof(esp_blufi_extra_info_t)); */
-        /*     memcpy(info.sta_bssid, gl_sta_bssid, 6); */
-        /*     info.sta_bssid_set = true; */
-        /*     info.sta_ssid = gl_sta_ssid; */
-        /*     info.sta_ssid_len = gl_sta_ssid_len; */
-        /*     esp_blufi_send_wifi_conn_report(mode, ESP_BLUFI_STA_CONN_SUCCESS, 0, &info); */
-        /* } else { */
-        /*     esp_blufi_send_wifi_conn_report(mode, ESP_BLUFI_STA_CONN_FAIL, 0, NULL); */
-        /* } */
-        /* BLUFI_INFO("BLUFI get wifi status from AP\n"); */
-
         break;
     }
     case ESP_BLUFI_EVENT_RECV_SLAVE_DISCONNECT_BLE:
@@ -116,14 +81,7 @@ static void aeroh_one_event_callback(esp_blufi_cb_event_t event, esp_blufi_cb_pa
         /* TODO */
         break;
     case ESP_BLUFI_EVENT_RECV_STA_BSSID:
-        // no-use
         /* Not handle currently */
-
-        /* memcpy(sta_config.sta.bssid, param->sta_bssid.bssid, 6); */
-        /* sta_config.sta.bssid_set = 1; */
-        /* esp_wifi_set_config(WIFI_IF_STA, &sta_config); */
-        /* BLUFI_INFO("Recv STA BSSID %s\n", sta_config.sta.ssid); */
-
         break;
     case ESP_BLUFI_EVENT_RECV_STA_SSID:
         strncpy((char *)sta_config.sta.ssid, (char *)param->sta_ssid.ssid, param->sta_ssid.ssid_len);
@@ -138,74 +96,22 @@ static void aeroh_one_event_callback(esp_blufi_cb_event_t event, esp_blufi_cb_pa
         BLUFI_INFO("Recv STA PASSWORD %s\n", sta_config.sta.password);
         break;
     case ESP_BLUFI_EVENT_RECV_SOFTAP_SSID:
-        // no-use
         /* Not handle currently */
-
-        /* strncpy((char *)ap_config.ap.ssid, (char *)param->softap_ssid.ssid, param->softap_ssid.ssid_len); */
-        /* ap_config.ap.ssid[param->softap_ssid.ssid_len] = '\0'; */
-        /* ap_config.ap.ssid_len = param->softap_ssid.ssid_len; */
-        /* esp_wifi_set_config(WIFI_IF_AP, &ap_config); */
-        /* BLUFI_INFO("Recv SOFTAP SSID %s, ssid len %d\n", ap_config.ap.ssid, ap_config.ap.ssid_len); */
-
         break;
     case ESP_BLUFI_EVENT_RECV_SOFTAP_PASSWD:
-        // no-use
         /* Not handle currently */
-
-        /* strncpy((char *)ap_config.ap.password, (char *)param->softap_passwd.passwd, param->softap_passwd.passwd_len); */
-        /* ap_config.ap.password[param->softap_passwd.passwd_len] = '\0'; */
-        /* esp_wifi_set_config(WIFI_IF_AP, &ap_config); */
-        /* BLUFI_INFO("Recv SOFTAP PASSWORD %s len = %d\n", ap_config.ap.password, param->softap_passwd.passwd_len); */
-
         break;
     case ESP_BLUFI_EVENT_RECV_SOFTAP_MAX_CONN_NUM:
-        // no-use
         /* Not handle currently */
-
-        /* if (param->softap_max_conn_num.max_conn_num > 4) { */
-        /*     return; */
-        /* } */
-        /* ap_config.ap.max_connection = param->softap_max_conn_num.max_conn_num; */
-        /* esp_wifi_set_config(WIFI_IF_AP, &ap_config); */
-        /* BLUFI_INFO("Recv SOFTAP MAX CONN NUM %d\n", ap_config.ap.max_connection); */
-
         break;
     case ESP_BLUFI_EVENT_RECV_SOFTAP_AUTH_MODE:
-        // no-use
         /* Not handle currently */
-
-        /* if (param->softap_auth_mode.auth_mode >= WIFI_AUTH_MAX) { */
-        /*     return; */
-        /* } */
-        /* ap_config.ap.authmode = param->softap_auth_mode.auth_mode; */
-        /* esp_wifi_set_config(WIFI_IF_AP, &ap_config); */
-        /* BLUFI_INFO("Recv SOFTAP AUTH MODE %d\n", ap_config.ap.authmode); */
-
         break;
     case ESP_BLUFI_EVENT_RECV_SOFTAP_CHANNEL:
-        // no-use
         /* Not handle currently */
-
-        /* if (param->softap_channel.channel > 13) { */
-        /*     return; */
-        /* } */
-        /* ap_config.ap.channel = param->softap_channel.channel; */
-        /* esp_wifi_set_config(WIFI_IF_AP, &ap_config); */
-        /* BLUFI_INFO("Recv SOFTAP CHANNEL %d\n", ap_config.ap.channel); */
-
         break;
     case ESP_BLUFI_EVENT_GET_WIFI_LIST:{
-        // no-use
         /* Not handle currently */
-
-        /* wifi_scan_config_t scanConf = { */
-        /*     .ssid = NULL, */
-        /*     .bssid = NULL, */
-        /*     .channel = 0, */
-        /*     .show_hidden = false */
-        /* }; */
-        /* esp_wifi_scan_start(&scanConf, true); */
-
         break;
     }
     case ESP_BLUFI_EVENT_RECV_CUSTOM_DATA:
