@@ -1,8 +1,6 @@
 #include "errors.h"
 #include "logging.h"
 
-#include "esp_wifi.h"
-
 #include "esp_bt.h"
 #include "esp_blufi_api.h"
 #include "blufi_adapter.h"
@@ -15,10 +13,30 @@
 
 static void aeroh_one_event_callback(esp_blufi_cb_event_t event, esp_blufi_cb_param_t *param);
 
-static wifi_config_t sta_config;
-/* static wifi_config_t ap_config; */
+static char * wifi_password = NULL;
+static char * wifi_ssid = NULL;
 
 static bool ble_is_connected = false;
+
+void wifi_success_callback(uint8_t * bssid, uint8_t * ssid, int ssid_len) {
+    LOGI("WIFI Success Callback Called");
+    if (ble_is_connected) {
+        esp_blufi_extra_info_t info;
+        memset(&info, 0, sizeof(esp_blufi_extra_info_t));
+        memcpy(info.sta_bssid, bssid, 6);
+        info.sta_bssid_set = true;
+        info.sta_ssid = ssid;
+        info.sta_ssid_len = ssid_len;
+        esp_blufi_send_wifi_conn_report(WIFI_MODE_STA, ESP_BLUFI_STA_CONN_SUCCESS, 0, &info);
+    }
+}
+
+void wifi_failure_callback(void) {
+    LOGI("WIFI Failure Callback Called");
+    if (ble_is_connected) {
+        esp_blufi_send_wifi_conn_report(WIFI_MODE_STA, ESP_BLUFI_STA_CONN_FAIL, 0, NULL);
+    }
+}
 
 static void aeroh_one_event_callback(esp_blufi_cb_event_t event, esp_blufi_cb_param_t *param)
 {
@@ -51,17 +69,14 @@ static void aeroh_one_event_callback(esp_blufi_cb_event_t event, esp_blufi_cb_pa
         }
         break;
     case ESP_BLUFI_EVENT_SET_WIFI_OPMODE:
-        BLUFI_INFO("BLUFI Set WIFI opmode %d\n", param->wifi_mode.op_mode);
-        ESP_ERROR_CHECK( esp_wifi_set_mode(param->wifi_mode.op_mode) );
+        /* Not handle currently */
         break;
     case ESP_BLUFI_EVENT_REQ_CONNECT_TO_AP:
         BLUFI_INFO("BLUFI requset wifi connect to AP\n");
         /* there is no wifi callback when the device has already connected to this wifi
         so disconnect wifi before connection.
         */
-        esp_wifi_start();
-        esp_wifi_disconnect();
-        esp_wifi_connect();
+        connect_to_wifi(wifi_ssid, wifi_password, wifi_success_callback, wifi_failure_callback);
         break;
     case ESP_BLUFI_EVENT_REQ_DISCONNECT_FROM_AP:
         /* Not handle currently */
@@ -84,16 +99,28 @@ static void aeroh_one_event_callback(esp_blufi_cb_event_t event, esp_blufi_cb_pa
         /* Not handle currently */
         break;
     case ESP_BLUFI_EVENT_RECV_STA_SSID:
-        strncpy((char *)sta_config.sta.ssid, (char *)param->sta_ssid.ssid, param->sta_ssid.ssid_len);
-        sta_config.sta.ssid[param->sta_ssid.ssid_len] = '\0';
-        esp_wifi_set_config(WIFI_IF_STA, &sta_config);
-        BLUFI_INFO("Recv STA SSID %s\n", sta_config.sta.ssid);
+        if (wifi_ssid != NULL) {
+            free(wifi_ssid);
+            wifi_ssid = NULL;
+        }
+
+        wifi_ssid = malloc(sizeof(char) * (param->sta_ssid.ssid_len + 1));
+
+        strncpy(wifi_ssid, (char *)param->sta_ssid.ssid, param->sta_ssid.ssid_len);
+        wifi_ssid[param->sta_ssid.ssid_len] = '\0';
+        BLUFI_INFO("Recv STA SSID %s\n", wifi_ssid);
         break;
     case ESP_BLUFI_EVENT_RECV_STA_PASSWD:
-        strncpy((char *)sta_config.sta.password, (char *)param->sta_passwd.passwd, param->sta_passwd.passwd_len);
-        sta_config.sta.password[param->sta_passwd.passwd_len] = '\0';
-        esp_wifi_set_config(WIFI_IF_STA, &sta_config);
-        BLUFI_INFO("Recv STA PASSWORD %s\n", sta_config.sta.password);
+        if (wifi_password != NULL) {
+            free(wifi_password);
+            wifi_password = NULL;
+        }
+
+        wifi_password = malloc(sizeof(char) * (param->sta_passwd.passwd_len + 1));
+
+        strncpy(wifi_password, (char *)param->sta_passwd.passwd, param->sta_passwd.passwd_len);
+        wifi_password[param->sta_passwd.passwd_len] = '\0';
+        BLUFI_INFO("Recv STA PASSWORD %s\n", wifi_password);
         break;
     case ESP_BLUFI_EVENT_RECV_SOFTAP_SSID:
         /* Not handle currently */
