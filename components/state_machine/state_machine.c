@@ -16,13 +16,15 @@
 
 #include "state_machine.h"
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
 #define MACHINE_STATE_KEY   "machine_state"
 
 static int32_t machine_state = MACHINE_STATE_EMPTY;
 
 void initialize_or_get_current_state();
 error_t get_state_machine_state();
-error_t set_state_machine_state(const int32_t new_machine_state);
 
 void run_current_state_callback(void) {
     switch(machine_state) {
@@ -35,6 +37,11 @@ void run_current_state_callback(void) {
 }
 
 error_t start_state_machine() {
+    if (get_current_state_from_ram() == MACHINE_STATE_EMPTY) {
+        // initialization complete
+        set_state_machine_state(MACHINE_STATE_NEW);
+    }
+
     LOGI("Starting State Machine");
     initialize_or_get_current_state();
     LOGI("Current Machine State: %d", machine_state);
@@ -69,5 +76,10 @@ error_t get_state_machine_state() {
 
 error_t set_state_machine_state(const int32_t new_machine_state) {
     LOGI("Setting Machine State to %d", new_machine_state);
-    return storage_set_int(MACHINE_STATE_KEY, new_machine_state);
+    if (storage_set_int(MACHINE_STATE_KEY, new_machine_state) == SUCCESS) {
+      machine_state = new_machine_state;
+      return SUCCESS;
+    } else {
+      return FAILED;
+    }
 }

@@ -12,6 +12,7 @@
 #define MAX_LED_BRIGHTNESS 63
 
 static led_strip_t *pStrip_a;
+static int32_t current_state = MACHINE_STATE_EMPTY;
 
 struct ColorIntensity {
     int red;
@@ -44,11 +45,14 @@ void set_pixel(int brightness) {
 }
 
 bool machine_state_changed(int msToWait) {
-    uint32_t * pulNotificationValue = 0;
-    xTaskNotifyWait(0x0, 0x0, pulNotificationValue, pdMS_TO_TICKS(msToWait));
-    if (pulNotificationValue != 0) {
+    LOGI("Checking if Machine State Changed!");
+
+    vTaskDelay(pdMS_TO_TICKS(msToWait));
+    if (current_state != get_current_state_from_ram()) {
+        LOGI("Machine State Changed!");
         return true;
     } else {
+        LOGI("Machine State Didn't Changed!");
         return false;
     }
 }
@@ -98,7 +102,7 @@ void solid(void) {
     set_pixel(MAX_LED_BRIGHTNESS);
     vTaskDelay(pdMS_TO_TICKS(100));
     // Block till status change or timeout
-    if (machine_state_changed(1000*10)) {
+    if (machine_state_changed(1000)) {
         return;
     }
 }
@@ -107,7 +111,7 @@ void clear(void) {
     pStrip_a->clear(pStrip_a, 50);
 
     // Block till status change or timeout
-    if (machine_state_changed(1000*10)) {
+    if (machine_state_changed(1000)) {
         return;
     }
 }
@@ -123,10 +127,13 @@ void display_startup_error(void) {
 
 void vStatusLEDTask(void *pvParameters) {
     initialize();
-    LOGI("STATUS LED State Update: %d", get_current_state_from_ram());
 
     while(1) {
-        switch(get_current_state_from_ram()) {
+	LOGI("STATUS LED State Update: %d", get_current_state_from_ram());
+
+	current_state = get_current_state_from_ram();
+
+        switch(current_state) {
             case MACHINE_STATE_EMPTY:
             case MACHINE_STATE_NEW:
                 set_color_intensity(0, 0, 1);

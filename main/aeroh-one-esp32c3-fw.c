@@ -20,7 +20,7 @@ void app_main(void)
         display_startup_error();
     }
 
-    start_state_machine();
-
     xTaskCreate(vStatusLEDTask, "status_led", 4*1024, NULL, 1, NULL);
+
+    start_state_machine();
 }
