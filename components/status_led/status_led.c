@@ -9,7 +9,7 @@
 #define BLINK_GPIO  8
 #define BLINK_RMT_CHANNEL 0
 
-#define MAX_LED_BRIGHTNESS 63
+#define MAX_LED_BRIGHTNESS 31
 
 static led_strip_t *pStrip_a;
 static int32_t current_state = MACHINE_STATE_EMPTY;
@@ -150,11 +150,21 @@ void vStatusLEDTask(void *pvParameters) {
                 break;
             case MACHINE_STATE_PROVISIONING_WIFI_CONNECTING:
                 set_color_intensity(1, 1, 1);
-                rapid_blink();
+                strobe();
                 break;
-            case MACHINE_STATE_PROVISIONING_MQTT_CONNECTING:
+
+            case MACHINE_STATE_PROVISIONING_WIFI_CONNECTED:
                 set_color_intensity(1, 1, 1);
                 solid();
+                break;
+            case MACHINE_STATE_PROVISIONING_WIFI_CONNECTED_BT_TRANSFER:
+                set_color_intensity(0, 0, 1);
+                rapid_blink();
+                break;
+
+            case MACHINE_STATE_PROVISIONING_MQTT_CONNECTING:
+                set_color_intensity(1, 1, 1);
+                rapid_blink();
                 break;
             case MACHINE_STATE_PROVISIONING_CONNECTED:
                 set_color_intensity(0, 1, 0);

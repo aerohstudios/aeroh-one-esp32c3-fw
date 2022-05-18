@@ -8,6 +8,8 @@
 
 #include "esp_wifi.h"
 
+#include "state_machine.h"
+
 #include "wifi_service.h"
 
 #define WIFI_LIST_NUM   10
@@ -45,6 +47,7 @@ static void ip_event_handler(void* arg, esp_event_base_t event_base,
 
         xEventGroupSetBits(wifi_event_group, CONNECTED_BIT);
 
+        set_state_machine_state(MACHINE_STATE_PROVISIONING_WIFI_CONNECTED);
         success_callback(gl_sta_bssid, gl_sta_ssid, gl_sta_ssid_len);
         break;
     }
@@ -143,6 +146,7 @@ void connect_to_wifi(char * wifi_ssid, char * wifi_password, void (* success_clb
         esp_wifi_disconnect();
     }
 
+    set_state_machine_state(MACHINE_STATE_PROVISIONING_WIFI_CONNECTING);
     esp_wifi_connect();
 }
 

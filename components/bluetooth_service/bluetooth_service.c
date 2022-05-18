@@ -99,6 +99,7 @@ static void aeroh_one_event_callback(esp_blufi_cb_event_t event, esp_blufi_cb_pa
         /* Not handle currently */
         break;
     case ESP_BLUFI_EVENT_RECV_STA_SSID:
+        set_state_machine_state(MACHINE_STATE_PROVISIONING_BT_TRANSFER);
         if (wifi_ssid != NULL) {
             free(wifi_ssid);
             wifi_ssid = NULL;
@@ -111,6 +112,7 @@ static void aeroh_one_event_callback(esp_blufi_cb_event_t event, esp_blufi_cb_pa
         BLUFI_INFO("Recv STA SSID %s\n", wifi_ssid);
         break;
     case ESP_BLUFI_EVENT_RECV_STA_PASSWD:
+        set_state_machine_state(MACHINE_STATE_PROVISIONING_BT_TRANSFER);
         if (wifi_password != NULL) {
             free(wifi_password);
             wifi_password = NULL;
@@ -142,7 +144,8 @@ static void aeroh_one_event_callback(esp_blufi_cb_event_t event, esp_blufi_cb_pa
         break;
     }
     case ESP_BLUFI_EVENT_RECV_CUSTOM_DATA:
-        // in use
+        set_state_machine_state(MACHINE_STATE_PROVISIONING_WIFI_CONNECTED_BT_TRANSFER);
+
         BLUFI_INFO("Recv Custom Data 1: %d\n", param->custom_data.data_len);
         esp_log_buffer_hex("Custom Data 1: ", param->custom_data.data, param->custom_data.data_len);
 
