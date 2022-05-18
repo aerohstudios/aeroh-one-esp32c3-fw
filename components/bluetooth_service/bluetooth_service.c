@@ -8,6 +8,7 @@
 
 #include "state_machine.h"
 #include "wifi_service.h"
+#include "storage.h"
 
 #include "cJSON.h"
 
@@ -146,29 +147,33 @@ static void aeroh_one_event_callback(esp_blufi_cb_event_t event, esp_blufi_cb_pa
     case ESP_BLUFI_EVENT_RECV_CUSTOM_DATA:
         set_state_machine_state(MACHINE_STATE_PROVISIONING_WIFI_CONNECTED_BT_TRANSFER);
 
-        BLUFI_INFO("Recv Custom Data 1: %d\n", param->custom_data.data_len);
-        esp_log_buffer_hex("Custom Data 1: ", param->custom_data.data, param->custom_data.data_len);
+        BLUFI_INFO("Received Custom Data!\n");
+        //BLUFI_INFO("Recv Custom Data 1: %d\n", param->custom_data.data_len);
+        //esp_log_buffer_hex("Custom Data 1: ", param->custom_data.data, param->custom_data.data_len);
 
         char *recv_msg = malloc(sizeof(char) * (param->custom_data.data_len + 1));
         memcpy(recv_msg, param->custom_data.data, param->custom_data.data_len);
         recv_msg[param->custom_data.data_len] = '\0';
-        BLUFI_INFO("Custom Data 2: %s\n", recv_msg);
+        //BLUFI_INFO("Custom Data 2: %s\n", recv_msg);
 
         cJSON *root = cJSON_Parse(recv_msg);
 
         if (cJSON_GetObjectItem(root, "certificate_pem")) {
             char *certificate_pem = cJSON_GetObjectItem(root, "certificate_pem")->valuestring;
-            BLUFI_INFO("certificate_pem=%s", certificate_pem);
+            BLUFI_INFO("Got certificate_pem!");
+            storage_set_str("certificate_pem", certificate_pem);
         }
 
         if (cJSON_GetObjectItem(root, "certificate_public_key")) {
             char *certificate_public_key = cJSON_GetObjectItem(root, "certificate_public_key")->valuestring;
-            BLUFI_INFO("certificate_public_key=%s", certificate_public_key);
+            BLUFI_INFO("Got certificate_public_key!");
+            storage_set_str("certificate_pub", certificate_public_key);
         }
 
         if (cJSON_GetObjectItem(root, "certificate_private_key")) {
             char *certificate_private_key = cJSON_GetObjectItem(root, "certificate_private_key")->valuestring;
-            BLUFI_INFO("certificate_private_key=%s", certificate_private_key);
+            BLUFI_INFO("Got certificate_private_key!");
+            storage_set_str("certificate_pri", certificate_private_key);
         }
 
         unsigned char reply_msg[6] = "Ack";
