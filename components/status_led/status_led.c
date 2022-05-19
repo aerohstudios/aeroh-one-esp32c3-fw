@@ -149,11 +149,13 @@ void vStatusLEDTask(void *pvParameters) {
                 rapid_blink();
                 break;
             case MACHINE_STATE_PROVISIONING_WIFI_CONNECTING:
+            case MACHINE_STATE_STARTUP_WIFI_CONNECTING:
                 set_color_intensity(1, 1, 1);
                 strobe();
                 break;
 
             case MACHINE_STATE_PROVISIONING_WIFI_CONNECTED:
+            case MACHINE_STATE_STARTUP_WIFI_CONNECTED:
                 set_color_intensity(1, 1, 1);
                 solid();
                 break;
@@ -163,10 +165,12 @@ void vStatusLEDTask(void *pvParameters) {
                 break;
 
             case MACHINE_STATE_PROVISIONING_MQTT_CONNECTING:
+            case MACHINE_STATE_STARTUP_MQTT_CONNECTING:
                 set_color_intensity(1, 1, 1);
                 rapid_blink();
                 break;
             case MACHINE_STATE_PROVISIONING_CONNECTED:
+            case MACHINE_STATE_STARTUP_MQTT_CONNECTED:
                 set_color_intensity(0, 1, 0);
                 solid();
                 break;
