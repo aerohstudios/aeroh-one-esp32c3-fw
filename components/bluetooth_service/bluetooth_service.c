@@ -9,6 +9,7 @@
 #include "state_machine.h"
 #include "wifi_service.h"
 #include "storage.h"
+#include "cloud.h"
 
 #include "cJSON.h"
 
@@ -196,6 +197,10 @@ static void aeroh_one_event_callback(esp_blufi_cb_event_t event, esp_blufi_cb_pa
 
         unsigned char reply_msg[6] = "Ack";
         esp_blufi_send_custom_data(reply_msg, 6);
+
+        set_state_machine_state(MACHINE_STATE_PROVISIONING_MQTT_CONNECTING);
+        initialize_mqtt_client();
+        subscribe_to_aws_iot();
 
         break;
     case ESP_BLUFI_EVENT_RECV_USERNAME:

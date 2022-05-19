@@ -13,6 +13,8 @@
 #include "logging.h"
 #include "storage.h"
 #include "bluetooth_service.h"
+#include "wifi_service.h"
+#include "cloud.h"
 
 #include "state_machine.h"
 
@@ -30,6 +32,12 @@ void run_current_state_callback(void) {
     switch(machine_state) {
         case MACHINE_STATE_NEW:
             initialize_bluetooth(); // TODO add failure condition
+            break;
+        case MACHINE_STATE_PROVISIONING_MQTT_CONNECTING:
+            initialize_wifi();
+            connect_to_wifi();
+            initialize_mqtt_client();
+            subscribe_to_aws_iot();
             break;
         default:
             LOGE("State callback not implimented for state: %d", machine_state);
