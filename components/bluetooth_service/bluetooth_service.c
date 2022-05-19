@@ -77,7 +77,7 @@ static void aeroh_one_event_callback(esp_blufi_cb_event_t event, esp_blufi_cb_pa
         /* there is no wifi callback when the device has already connected to this wifi
         so disconnect wifi before connection.
         */
-        connect_to_wifi(wifi_ssid, wifi_password, wifi_success_callback, wifi_failure_callback);
+        connect_to_wifi_with_options(wifi_ssid, wifi_password, wifi_success_callback, wifi_failure_callback);
         break;
     case ESP_BLUFI_EVENT_REQ_DISCONNECT_FROM_AP:
         /* Not handle currently */

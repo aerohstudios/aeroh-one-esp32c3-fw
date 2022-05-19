@@ -47,8 +47,15 @@ static void ip_event_handler(void* arg, esp_event_base_t event_base,
 
         xEventGroupSetBits(wifi_event_group, CONNECTED_BIT);
 
-        set_state_machine_state(MACHINE_STATE_PROVISIONING_WIFI_CONNECTED);
-        success_callback(gl_sta_bssid, gl_sta_ssid, gl_sta_ssid_len);
+        if (get_current_state_from_ram() < MACHINE_STATE_PROVISIONING_MQTT_CONNECTING) {
+            set_state_machine_state(MACHINE_STATE_PROVISIONING_WIFI_CONNECTED);
+        } else {
+            set_state_machine_state(MACHINE_STATE_STARTUP_WIFI_CONNECTED);
+        }
+
+        if (success_callback != NULL) {
+            success_callback(gl_sta_bssid, gl_sta_ssid, gl_sta_ssid_len);
+        }
         break;
     }
     default:
@@ -98,7 +105,9 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base,
             LOGI("WIFI Retrying to connect, attempt no. %d", retry_counter);
         } else if (retry_counter == DISCONNECT_LIMIT_FOR_FAILURE) {
             // Report Failure
-            failure_callback();
+            if (failure_callback != NULL) {
+                failure_callback();
+            }
 
             retry_counter += 1;
             LOGI("WIFI Connection Failure, will continue to retry");
@@ -121,11 +130,32 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base,
     return;
 }
 
+void connect_to_wifi() {
+    LOGI("Connecting to WIFI");
 
-void connect_to_wifi(char * wifi_ssid, char * wifi_password, void (* success_clbk)(uint8_t *, uint8_t *, int), void (* failure_clbk)(void)) {
+    while (wifi_initialized != true) {
+        LOGI("Waiting for WIFI to initialize...");
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+    LOGI("Ready to connect WIFI");
+
     // reset retry counter
     retry_counter = 0;
 
+    if (gl_sta_connected) {
+        esp_wifi_disconnect();
+    }
+
+    if (get_current_state_from_ram() < MACHINE_STATE_PROVISIONING_MQTT_CONNECTING) {
+        set_state_machine_state(MACHINE_STATE_PROVISIONING_WIFI_CONNECTING);
+    } else {
+        set_state_machine_state(MACHINE_STATE_STARTUP_WIFI_CONNECTING);
+    }
+    esp_wifi_connect();
+}
+
+
+void connect_to_wifi_with_options(char * wifi_ssid, char * wifi_password, void (* success_clbk)(uint8_t *, uint8_t *, int), void (* failure_clbk)(void)) {
     static wifi_config_t sta_config;
 
     uint8_t ssid_len = strlen(wifi_ssid);
@@ -142,16 +172,13 @@ void connect_to_wifi(char * wifi_ssid, char * wifi_password, void (* success_clb
     success_callback = success_clbk;
     failure_callback = failure_clbk;
 
-    if (gl_sta_connected) {
-        esp_wifi_disconnect();
-    }
+    connect_to_wifi();
 
-    set_state_machine_state(MACHINE_STATE_PROVISIONING_WIFI_CONNECTING);
-    esp_wifi_connect();
 }
 
 void initialize_wifi(void)
 {
+    LOGI("Initializing WIFI");
     ESP_ERROR_CHECK(esp_netif_init());
     wifi_event_group = xEventGroupCreate();
     ESP_ERROR_CHECK(esp_event_loop_create_default());
