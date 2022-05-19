@@ -37,6 +37,7 @@ static bool gl_sta_connected = false;
 static uint8_t gl_sta_bssid[6];
 static uint8_t gl_sta_ssid[32];
 static int gl_sta_ssid_len;
+static bool wifi_initialized = false;
 
 static void ip_event_handler(void* arg, esp_event_base_t event_base,
                                 int32_t event_id, void* event_data)
@@ -70,6 +71,7 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base,
 
     switch (event_id) {
     case WIFI_EVENT_STA_START:
+        wifi_initialized = true;
         LOGI("WIFI_EVENT_STA_START\n");
         break;
     case WIFI_EVENT_STA_CONNECTED:

@@ -36,14 +36,37 @@ void run_current_state_callback(void) {
     }
 }
 
-error_t start_state_machine() {
-    if (get_current_state_from_ram() == MACHINE_STATE_EMPTY) {
+void reset_system_state_on_startup() {
+    initialize_or_get_current_state();
+
+    int32_t current_state = get_current_state_from_ram();
+
+    // provisioning phase
+    if (current_state == MACHINE_STATE_EMPTY ||
+        (current_state >= MACHINE_STATE_PROVISIONING_BT_CONNECTED
+         && current_state <= MACHINE_STATE_PROVISIONING_WIFI_CONNECTED_BT_TRANSFER)) {
         // initialization complete
+        LOGI("Changing current state from %d to %d", current_state, MACHINE_STATE_NEW);
+
         set_state_machine_state(MACHINE_STATE_NEW);
     }
 
+    // startup phase
+    if (current_state >= MACHINE_STATE_STARTUP_WIFI_CONNECTING &&
+        current_state <= MACHINE_STATE_STARTUP_MQTT_CONNECTED) {
+
+        LOGI("Changing current state from %d to %d",
+             current_state, MACHINE_STATE_PROVISIONING_MQTT_CONNECTING);
+
+        set_state_machine_state(MACHINE_STATE_PROVISIONING_MQTT_CONNECTING);
+    }
+}
+
+
+error_t start_state_machine() {
     LOGI("Starting State Machine");
-    initialize_or_get_current_state();
+    reset_system_state_on_startup();
+
     LOGI("Current Machine State: %d", machine_state);
     run_current_state_callback();
     return SUCCESS;
