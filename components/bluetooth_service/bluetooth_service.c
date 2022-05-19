@@ -176,6 +176,24 @@ static void aeroh_one_event_callback(esp_blufi_cb_event_t event, esp_blufi_cb_pa
             storage_set_str("certificate_pri", certificate_private_key);
         }
 
+        if (cJSON_GetObjectItem(root, "thing_name")) {
+            char *thing_name = cJSON_GetObjectItem(root, "thing_name")->valuestring;
+            BLUFI_INFO("Got thing_name!");
+            storage_set_str("thing_name", thing_name);
+        }
+
+        if (cJSON_GetObjectItem(root, "root_ca")) {
+            char *root_ca = cJSON_GetObjectItem(root, "root_ca")->valuestring;
+            BLUFI_INFO("Got root_ca!");
+            storage_set_str("root_ca", root_ca);
+        }
+
+        if (cJSON_GetObjectItem(root, "mqtt_uri")) {
+            char *mqtt_uri = cJSON_GetObjectItem(root, "mqtt_uri")->valuestring;
+            BLUFI_INFO("Got mqtt_uri!");
+            storage_set_str("mqtt_uri", mqtt_uri);
+        }
+
         unsigned char reply_msg[6] = "Ack";
         esp_blufi_send_custom_data(reply_msg, 6);
 
