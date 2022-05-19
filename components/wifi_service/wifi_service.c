@@ -38,6 +38,7 @@ static uint8_t gl_sta_bssid[6];
 static uint8_t gl_sta_ssid[32];
 static int gl_sta_ssid_len;
 static bool wifi_initialized = false;
+static bool wifi_connected = false;
 
 static void ip_event_handler(void* arg, esp_event_base_t event_base,
                                 int32_t event_id, void* event_data)
@@ -46,6 +47,7 @@ static void ip_event_handler(void* arg, esp_event_base_t event_base,
     case IP_EVENT_STA_GOT_IP: {
         LOGI("IP_EVENT_STA_GOT_IP\n");
 
+        wifi_connected = true;
         xEventGroupSetBits(wifi_event_group, CONNECTED_BIT);
 
         if (get_current_state_from_ram() < MACHINE_STATE_PROVISIONING_MQTT_CONNECTING) {
@@ -90,6 +92,7 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base,
         LOGI("WIFI_EVENT_STA_DISCONNECTED\n");
         /* This is a workaround as ESP32 WiFi libs don't currently
            auto-reassociate. */
+        wifi_connected = false;
         gl_sta_connected = false;
         xEventGroupClearBits(wifi_event_group, CONNECTED_BIT);
 
@@ -175,7 +178,10 @@ void connect_to_wifi_with_options(char * wifi_ssid, char * wifi_password, void (
     failure_callback = failure_clbk;
 
     connect_to_wifi();
+}
 
+bool is_wifi_connected() {
+    return wifi_connected;
 }
 
 void initialize_wifi(void)
