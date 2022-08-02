@@ -30,6 +30,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
             sprintf(topic_name, "%s/commands", client_id);
             msg_id = esp_mqtt_client_subscribe(client, topic_name, 1);
             LOGI("sent subscribe successful, msg_id=%d", msg_id);
+            LOGI("topic_name=%s", topic_name);
             break;
         case MQTT_EVENT_DATA:
             LOGI("MQTT_EVENT_DATA");
