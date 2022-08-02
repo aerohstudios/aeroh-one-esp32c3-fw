@@ -6,7 +6,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#define BLINK_GPIO  8
+#define BLINK_GPIO  6
 #define BLINK_RMT_CHANNEL 0
 
 #define MAX_LED_BRIGHTNESS 31
