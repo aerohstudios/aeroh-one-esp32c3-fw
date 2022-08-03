@@ -15,6 +15,7 @@
 #include "bluetooth_service.h"
 #include "wifi_service.h"
 #include "cloud.h"
+#include "iris.h"
 
 #include "state_machine.h"
 
@@ -36,6 +37,8 @@ void run_current_state_callback(void) {
         case MACHINE_STATE_PROVISIONING_MQTT_CONNECTING:
             initialize_wifi();
             connect_to_wifi();
+            initialize_spi_bus();
+            add_device_to_spi_bus();
             initialize_mqtt_client();
             subscribe_to_aws_iot();
             break;

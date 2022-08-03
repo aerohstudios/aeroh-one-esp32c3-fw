@@ -7,6 +7,7 @@
 #include "errors.h"
 #include "storage.h"
 #include "wifi_service.h"
+#include "iris.h"
 
 #include "cloud.h"
 
@@ -37,7 +38,11 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
             printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
             printf("DATA=%.*s\r\n", event->data_len, event->data);
             LOGI("Process Incoming data");
-            //process_incoming_data(event->data, event->data_len);
+
+            char payload[6] = {'h', 'e', 'l', 'l', 'o', '\0'};
+            int payload_len = 6;
+            send_data_to_iris((char *) &payload, payload_len);
+
             break;
         case MQTT_EVENT_SUBSCRIBED:
             LOGI("MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
