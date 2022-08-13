@@ -22,6 +22,9 @@ void initialize_spi_bus() {
         LOGI("SPI Bus Already Initialized");
         return;
     }
+
+    memset(&iris_device_handle, 0, sizeof(spi_device_handle_t));
+
     // start spi master
     // https://docs.espressif.com/projects/esp-idf/en/latest/esp32c3/api-reference/peripherals/spi_master.html#_CPPv416spi_bus_config_t
     spi_bus_config_t spi_bus_config;
@@ -31,8 +34,9 @@ void initialize_spi_bus() {
     spi_bus_config.sclk_io_num = CLK_PIN;
     spi_bus_config.quadwp_io_num = -1;  // -1 not used
     spi_bus_config.quadhd_io_num = -1;  // -1 not used
+    spi_bus_config.max_transfer_sz = 4094; // with DMA
 
-    esp_err_t spi_bus_initialize_err = spi_bus_initialize(ESP32_SPI_HOST, &spi_bus_config, SPI_DMA_DISABLED);
+    esp_err_t spi_bus_initialize_err = spi_bus_initialize(ESP32_SPI_HOST, &spi_bus_config, SPI_DMA_CH_AUTO);
     if (spi_bus_initialize_err != ESP_OK) {
         LOGI("Failed to Initialize SPI Bus");
     } else {
@@ -45,6 +49,7 @@ void add_device_to_spi_bus() {
 
     // https://docs.espressif.com/projects/esp-idf/en/latest/esp32c3/api-reference/peripherals/spi_master.html#structspi__device__interface__config__t
     spi_device_interface_config_t spi_device_interface_config;
+    memset(&spi_device_interface_config, 0, sizeof(spi_device_interface_config_t));
     spi_device_interface_config.command_bits = 0;
     spi_device_interface_config.address_bits = 0;
     spi_device_interface_config.dummy_bits = 0;
@@ -64,7 +69,7 @@ void add_device_to_spi_bus() {
     if (spi_bus_add_device_err != ESP_OK) {
         LOGI("Failed to add device to SPI Bus");
     } else {
-        LOGI("Add Device to SPI Bus");
+        LOGI("Added Device to SPI Bus");
     }
 }
 
@@ -87,5 +92,26 @@ void send_data_to_iris(char * payload, int payload_len) {
         LOGI("Failed to transmit data on SPI Bus");
     } else {
         LOGI("Transmitted data on SPI Bus");
+    }
+}
+
+void remove_device_from_spi_bus() {
+    esp_err_t spi_bus_remove_device_err = spi_bus_remove_device(iris_device_handle);
+    if (spi_bus_remove_device_err != ESP_OK) {
+        LOGI("Failed to remove device from SPI Bus");
+    } else {
+        LOGI("Removed Device from SPI Bus");
+    }
+}
+
+void free_spi_bus() {
+    if (spi_initialized) {
+        esp_err_t spi_bus_free_err = spi_bus_free(ESP32_SPI_HOST);
+        if (spi_bus_free_err != ESP_OK) {
+            LOGI("Failed to Free SPI Bus");
+        } else {
+            spi_initialized = false;
+            LOGI("SPI Bus Freed");
+        }
     }
 }

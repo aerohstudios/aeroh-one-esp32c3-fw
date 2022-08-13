@@ -19,6 +19,67 @@ static char * mqtt_uri = NULL;
 
 static bool mqtt_initialized = false;
 
+
+void int_to_chars(int d, char * higher, char * lower) {
+	*lower = d & 0xff;
+	*higher = (d >> 8) & 0xff;
+}
+
+void chars_to_int(char higher, char lower, int * e) {
+	*e = ((higher << 8) & 0xff00) | (lower & 0xff);
+}
+
+void serialize_command(char * serialized_command, int * command_size) {
+	char version = 0x1;
+	char command_type = 'p';
+	char repeat_key = 'r';
+	int repeat_value = 8;
+	int data_stream[12][2] = {
+		{1301, 384},
+        {1301, 384},
+
+        {448, 1259},
+        {1301, 384},
+
+        {1301, 384},
+        {448, 1259},
+
+        {448, 1259},
+        {448, 1259},
+
+        {448, 1259},
+        {1301, 384},
+
+        {448, 1259},
+        {448, 8128}
+	};
+
+	int idx = 0;
+	serialized_command[idx++] = version;
+	serialized_command[idx++] = command_type;
+	serialized_command[idx++] = repeat_key;
+	int_to_chars(repeat_value, &serialized_command[idx], &serialized_command[idx+1]);
+	idx++;
+	idx++;
+	serialized_command[idx++] = 'd';
+	serialized_command[idx++] = 'l';
+	int_to_chars(24, &serialized_command[idx], &serialized_command[idx+1]);
+	idx++;
+	idx++;
+	for (int i = 0; i < 12; i++) {
+		serialized_command[idx++] = '1';
+		int_to_chars(data_stream[i][0], &serialized_command[idx], &serialized_command[idx+1]);
+		idx++;
+		idx++;
+		serialized_command[idx++] = '0';
+		int_to_chars(data_stream[i][1], &serialized_command[idx], &serialized_command[idx+1]);
+		idx++;
+		idx++;
+	}
+	serialized_command[idx++] = 'e';
+    *command_size = idx+1;
+}
+
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 {
     esp_mqtt_client_handle_t client = event->client;
@@ -39,9 +100,15 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
             printf("DATA=%.*s\r\n", event->data_len, event->data);
             LOGI("Process Incoming data");
 
-            char payload[6] = {'h', 'e', 'l', 'l', 'o', '\0'};
-            int payload_len = 6;
+            char payload[128] = "";
+            int payload_len = 0;
+            serialize_command(&payload, &payload_len);
+
+            initialize_spi_bus();
+            add_device_to_spi_bus();
             send_data_to_iris((char *) &payload, payload_len);
+            remove_device_from_spi_bus();
+            free_spi_bus();
 
             break;
         case MQTT_EVENT_SUBSCRIBED:

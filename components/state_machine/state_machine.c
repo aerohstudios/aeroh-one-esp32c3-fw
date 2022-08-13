@@ -37,8 +37,6 @@ void run_current_state_callback(void) {
         case MACHINE_STATE_PROVISIONING_MQTT_CONNECTING:
             initialize_wifi();
             connect_to_wifi();
-            initialize_spi_bus();
-            add_device_to_spi_bus();
             initialize_mqtt_client();
             subscribe_to_aws_iot();
             break;
