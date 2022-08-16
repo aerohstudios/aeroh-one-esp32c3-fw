@@ -1,5 +1,3 @@
-void initialize_spi_bus();
-void add_device_to_spi_bus();
-void send_data_to_iris(char *, int);
-void remove_device_from_spi_bus();
-void free_spi_bus();
+#include "iris_typedefs.h"
+
+void iris_record_command(ir_command_t *);
