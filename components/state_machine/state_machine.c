@@ -35,6 +35,7 @@ void run_current_state_callback(void) {
             initialize_bluetooth(); // TODO add failure condition
             break;
         case MACHINE_STATE_PROVISIONING_MQTT_CONNECTING:
+            iris_start_repeater();
             initialize_wifi();
             connect_to_wifi();
             initialize_mqtt_client();
