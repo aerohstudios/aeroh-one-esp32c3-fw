@@ -8,6 +8,7 @@
 #include "stdlib.h"
 
 #include "iris_typedefs.h"
+#include "iris_serde.h"
 
 #include "logging.h"
 #include "errors.h"
@@ -71,7 +72,7 @@ void serialize_data_from_ir_command(ir_command_t * ir_command, void ** binary_da
 	LOGI("Binary Data Size: %d", *data_size);
 }
 
-void deserialize_data_to_rmt_items(void * binary_data, int num_bytes) {
+void deserialize_data_to_rmt_items(void * binary_data, unsigned int * duty_cycle, unsigned int * frequency, unsigned int * length, rmt_item32_t ** rmt_items) {
 	int size_of_unsigned_int = sizeof(unsigned int);
 	int size_of_char = sizeof(char);
 
@@ -83,55 +84,70 @@ void deserialize_data_to_rmt_items(void * binary_data, int num_bytes) {
 	idx += size_of_unsigned_int;
 	LOGI("Found Version %d", (int) version);
 
-	unsigned int duty_cycle = 0;
 	char duty_cycle_key = (char) *(ptr+idx);
 	if (duty_cycle_key == 'd') {
 		idx += size_of_char;
 
-		convert_chars_to_uint(ptr+idx, &duty_cycle);
+		convert_chars_to_uint(ptr+idx, duty_cycle);
 		idx += size_of_unsigned_int;
 
-		LOGI("Duty Cycle %d", (int) duty_cycle);
+		LOGI("Duty Cycle %d", (int) *duty_cycle);
 	}
 
-	unsigned int frequency = 0;
 	char frequency_key = (char) *(ptr+idx);
 	if (frequency_key == 'f') {
 		idx += size_of_char;
 
-		convert_chars_to_uint(ptr+idx, &frequency);
+		convert_chars_to_uint(ptr+idx, frequency);
 		idx += size_of_unsigned_int;
 
-		LOGI("Frequency %d", (int) frequency);
+		LOGI("Frequency %d", (int) *frequency);
 	}
 
-	unsigned int length = 0;
 	char length_key = (char) *(ptr+idx);
 	if (length_key == 'l') {
 		idx += size_of_char;
 
-		convert_chars_to_uint(ptr+idx, &length);
+		convert_chars_to_uint(ptr+idx, length);
 		idx += size_of_unsigned_int;
 
-		LOGI("Length %d", (int) length);
+		LOGI("Length %d", (int) *length);
 	}
+
+	unsigned int malloc_size = sizeof(rmt_item32_t) * (*length);
+	LOGI("Malloc size %d", (int) malloc_size);
+
+	void * malloc_ptr;
+	malloc_ptr = malloc(malloc_size);
+	*rmt_items = malloc_ptr;
 
 	char signal_pair_key = (char) *(ptr+idx);
 	idx += size_of_char;
 
 	if (signal_pair_key == 's') {
-		for (int signal_pair_idx = 0; signal_pair_idx < length; signal_pair_idx++) {
+		for (int signal_pair_idx = 0; signal_pair_idx < (*length); signal_pair_idx++) {
+			rmt_item32_t * current_rmt_item;
+			current_rmt_item = (rmt_item32_t *) ( malloc_ptr + (signal_pair_idx*sizeof(rmt_item32_t)) );
+
+
 			unsigned int high_time = 0;
 			convert_chars_to_uint(ptr+idx, &high_time);
+
+			(*current_rmt_item).duration0 = (int) high_time;
+			(*current_rmt_item).level0 = 1;
+
 			idx += size_of_unsigned_int;
+
 
 			unsigned int low_time = 0;
 			convert_chars_to_uint(ptr+idx, &low_time);
+
+			(*current_rmt_item).duration1 = (int) low_time;
+			(*current_rmt_item).level1 = 0;
+
 			idx += size_of_unsigned_int;
 
-			LOGI("signal_pair_idx: %d", signal_pair_idx);
-			LOGI("high_time: %d", (int) high_time);
-			LOGI("low_time: %d", (int) low_time);
+			//printf("idx: %d; high: %d; low: %d; loc: %p;\n", signal_pair_idx, high_time, low_time, current_rmt_item);
 		}
 	}
 
