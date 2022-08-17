@@ -41,7 +41,17 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 
             ir_command_t ir_command;
             iris_record_command(&ir_command);
-            free(ir_command.signal_pairs);
+
+            if (ir_command.length > 0) {
+				int data_size = 0;
+				void ** serialized_data = NULL;
+				serialize_data_from_ir_command(&ir_command, &serialized_data, &data_size);
+				free(ir_command.signal_pairs);
+
+				LOGI("Got size %d", data_size);
+				deserialize_data_to_rmt_items(serialized_data, data_size);
+				free(serialized_data);
+            }
 
             break;
         case MQTT_EVENT_SUBSCRIBED:
