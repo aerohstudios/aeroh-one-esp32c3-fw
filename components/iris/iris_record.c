@@ -122,6 +122,7 @@ void cleanup_from_record(gpio_num_t gpio_input_pin) {
 
 void record_for(int duration_in_ms, ir_command_t * ir_command) {
 	LOGI("Allocating Memory for Recording");
+	ir_command->version = 1;
 	ir_command->signal_pairs = malloc(MAX_RECORD_CAPACITY * sizeof(signal_pair_t));
 	int signal_pair_idx = 0;
 
@@ -157,6 +158,9 @@ void record_for(int duration_in_ms, ir_command_t * ir_command) {
 		}
 	}
 	ir_command->length = signal_pair_idx;
+	if (ir_command->length == 0) {
+		free(ir_command->signal_pairs);
+	}
 	LOGI("Done recording!");
 	LOGI("Got %d items with %d hz frequency and %d duty cycle", ir_command->length, ir_command->frequency, ir_command->duty_cycle);
 

@@ -14,6 +14,7 @@ typedef struct {
 } signal_pair_t;
 
 typedef struct {
+	unsigned int version;
 	unsigned int duty_cycle;
 	unsigned int frequency;
 	unsigned int length;
