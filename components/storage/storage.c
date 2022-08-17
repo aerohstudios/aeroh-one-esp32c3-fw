@@ -97,3 +97,27 @@ error_t storage_set_str(const char * key, const char * value) {
 
     return eval_return_value(nvs_open_err, nvs_set_str_err, ESP_ERR_NVS_NOT_ENOUGH_SPACE);
 }
+
+error_t storage_get_blob(const char * key, void * out_value, size_t * length) {
+	nvs_handle_t nvs_handle;
+    esp_err_t nvs_open_err = nvs_open(CONFIG_APP_ID, NVS_READWRITE, &nvs_handle);
+    esp_err_t nvs_get_blob_err = ESP_FAIL;
+    if (nvs_open_err == ESP_OK) {
+        nvs_get_blob_err = nvs_get_blob(nvs_handle, key, out_value, length);
+    }
+    nvs_close(nvs_handle);
+
+    return eval_return_value(nvs_open_err, nvs_get_blob_err, ESP_ERR_NVS_NOT_FOUND);
+}
+
+error_t storage_set_blob(const char * key, const void * value, size_t length) {
+    nvs_handle_t nvs_handle;
+    esp_err_t nvs_open_err = nvs_open(CONFIG_APP_ID, NVS_READWRITE, &nvs_handle);
+    esp_err_t nvs_set_blob_err = ESP_FAIL;
+    if (nvs_open_err == ESP_OK) {
+        nvs_set_blob_err = nvs_set_blob(nvs_handle, key, value, length);
+    }
+    nvs_close(nvs_handle);
+
+    return eval_return_value(nvs_open_err, nvs_set_blob_err, ESP_ERR_NVS_NOT_ENOUGH_SPACE);
+}
