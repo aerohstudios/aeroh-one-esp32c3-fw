@@ -2,6 +2,7 @@
 
 #include "mqtt_client.h"
 #include "esp_tls.h"
+#include "driver/rmt.h"
 
 #include "logging.h"
 #include "errors.h"
@@ -55,6 +56,12 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 				rmt_item32_t * rmt_items;
 				deserialize_data_to_rmt_items(serialized_data, &duty_cycle, &frequency, &length, &rmt_items);
 				free(serialized_data);
+
+				LOGI("Sleeping for 2 secs");
+				vTaskDelay(2000 / portTICK_PERIOD_MS);
+				LOGI("Done sleeping!");
+				iris_play_command(duty_cycle, frequency, length, rmt_items);
+				free(rmt_items);
             }
 
             break;

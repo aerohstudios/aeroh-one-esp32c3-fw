@@ -1,5 +1,6 @@
 #include "iris.h"
 #include "iris_record.h"
+#include "iris_play.h"
 
 #include "logging.h"
 #include "errors.h"
@@ -13,4 +14,10 @@ void iris_record_command(ir_command_t * ir_command) {
 	initialize_for_record(GPIO_INPUT_PIN);
 	record_for(2000, ir_command); // record for 2 secs approx
 	cleanup_from_record(GPIO_INPUT_PIN);
+}
+
+void iris_play_command(unsigned int duty_cycle, unsigned int frequency, unsigned int length, rmt_item32_t * rmt_items) {
+	initialize_rmt_driver(GPIO_OUTPUT_PIN, duty_cycle, frequency);
+	play_command(length, rmt_items);
+	cleanup_rmt_driver(GPIO_OUTPUT_PIN);
 }
