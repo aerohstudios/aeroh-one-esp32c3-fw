@@ -40,28 +40,65 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
             printf("DATA=%.*s\r\n", event->data_len, event->data);
             LOGI("Process Incoming data");
 
+            // 1. Record
+            LOGI("------1_Record_Command------");
             ir_command_t ir_command;
             iris_record_command(&ir_command);
 
             if (ir_command.length > 0) {
+				// 2. Serialize command to binary
+				LOGI("------2_Serialize_Data------");
 				size_t data_size = 0;
 				void * serialized_data = NULL;
 				serialize_data_from_ir_command(&ir_command, &serialized_data, &data_size);
 				free(ir_command.signal_pairs);
 
+				// 3. Store binary command in NVS Flash
+				LOGI("------3_Store_Data------");
 				LOGI("Got size %d", data_size);
-				unsigned int duty_cycle = 0;
-				unsigned int frequency = 0;
-				unsigned int length = 0;
-				rmt_item32_t * rmt_items;
-				deserialize_data_to_rmt_items(serialized_data, &duty_cycle, &frequency, &length, &rmt_items);
+				error_t storage_set_blob_ret_val = storage_set_blob("rmt_cmd_0", serialized_data, data_size);
+				if (storage_set_blob_ret_val == SUCCESS) {
+					LOGI("Success!");
+				} else {
+					LOGI("Got error! %d", storage_set_blob_ret_val);
+				}
 				free(serialized_data);
 
-				LOGI("Sleeping for 2 secs");
-				vTaskDelay(2000 / portTICK_PERIOD_MS);
-				LOGI("Done sleeping!");
-				iris_play_command(duty_cycle, frequency, length, rmt_items);
-				free(rmt_items);
+				// 4. Retrieve binary command from NVS Flash
+				LOGI("------4_Retrieve_Data------");
+				void * retrieved_serialized_data = NULL;
+				size_t retrieved_serialized_data_size = 0;
+				if (storage_get_blob("rmt_cmd_0", 0, &retrieved_serialized_data_size) == SUCCESS) {
+					retrieved_serialized_data = malloc(retrieved_serialized_data_size);
+
+					if (storage_get_blob("rmt_cmd_0", retrieved_serialized_data, &retrieved_serialized_data_size) == SUCCESS) {
+						LOGI("Got %d bytes at %p", retrieved_serialized_data_size, retrieved_serialized_data);
+
+						// 5. Deserialize Binary command to rmt_uint32_t for RMT Peripheral
+						LOGI("------5_Deserialize_Data------");
+						unsigned int duty_cycle = 0;
+						unsigned int frequency = 0;
+						unsigned int length = 0;
+						rmt_item32_t * rmt_items;
+						deserialize_data_to_rmt_items(retrieved_serialized_data, &duty_cycle, &frequency, &length, &rmt_items);
+						free(retrieved_serialized_data);
+
+						// 6. Sleep before re-play the command
+						LOGI("------6_Sleep_2_Secs------");
+						vTaskDelay(2000 / portTICK_PERIOD_MS);
+						LOGI("Done sleeping!");
+
+						// 7. Play the command
+						LOGI("------7_Play_Command------");
+						iris_play_command(duty_cycle, frequency, length, rmt_items);
+						free(rmt_items);
+					} else {
+						LOGE("Failed to retrieve rmt_cmd_0");
+					}
+
+				} else {
+					LOGE("Failed to retrieve rmt_cmd_0");
+				}
             }
 
             break;
