@@ -163,7 +163,7 @@ void initialize_mqtt_client() {
         LOGI("MQTT Client Initialized!");
         mqtt_initialized = true;
     } else {
-        LOGI("Failed to initalize MQTT Client, will try later!");
+        LOGI("Failed to initialize MQTT Client, will try later!");
     }
 }
 
