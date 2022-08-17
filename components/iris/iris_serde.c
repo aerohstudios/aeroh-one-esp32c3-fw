@@ -26,7 +26,7 @@ void convert_chars_to_uint(char * loc, unsigned int * value) {
 	*value = (unsigned int) ((*loc << 24) | (*(loc + 1) << 16) | (*(loc+2) << 8) | *(loc+3));
 }
 
-void serialize_data_from_ir_command(ir_command_t * ir_command, void ** binary_data, int * data_size) {
+void serialize_data_from_ir_command(ir_command_t * ir_command, void ** binary_data, size_t * data_size) {
 	int size_of_unsigned_int = sizeof(unsigned int);
 	int size_of_char = sizeof(char);
 	*data_size = (size_of_char * 4) + (size_of_unsigned_int*((ir_command->length*2)+4)) + 1;
@@ -114,7 +114,7 @@ void deserialize_data_to_rmt_items(void * binary_data, unsigned int * duty_cycle
 		LOGI("Length %d", (int) *length);
 	}
 
-	unsigned int malloc_size = sizeof(rmt_item32_t) * (*length);
+	size_t malloc_size = sizeof(rmt_item32_t) * (*length);
 	LOGI("Malloc size %d", (int) malloc_size);
 
 	void * malloc_ptr;
