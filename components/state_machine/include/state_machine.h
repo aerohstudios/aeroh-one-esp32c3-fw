@@ -36,3 +36,4 @@ enum MACHINE_STATES {
 error_t start_state_machine();
 int get_current_state_from_ram();
 error_t set_state_machine_state(const int32_t);
+error_t state_machine_reset();

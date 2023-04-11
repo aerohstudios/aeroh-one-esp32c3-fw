@@ -116,3 +116,8 @@ error_t set_state_machine_state(const int32_t new_machine_state) {
       return FAILED;
     }
 }
+
+error_t state_machine_reset() {
+	set_state_machine_state(MACHINE_STATE_EMPTY);
+	return SUCCESS;
+}
