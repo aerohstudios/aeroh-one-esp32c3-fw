@@ -133,7 +133,7 @@ esp_err_t esp_blufi_host_init(void)
     assert(rc == 0);
 
     /* Set the default device name. */
-    rc = ble_svc_gap_device_name_set(BLUFI_DEVICE_NAME);
+    rc = ble_svc_gap_device_name_set("Aeroh Link");
     assert(rc == 0);
 
     /* XXX Need to have template for store */
