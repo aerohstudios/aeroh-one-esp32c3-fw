@@ -42,7 +42,7 @@ void run_current_state_callback(void) {
             subscribe_to_aws_iot();
             break;
         default:
-            LOGE("State callback not implimented for state: %d", machine_state);
+            LOGE("State callback not implemented for state: %d", machine_state);
     }
 }
 
