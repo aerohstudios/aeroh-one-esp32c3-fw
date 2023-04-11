@@ -14,6 +14,8 @@
 static led_strip_t *pStrip_a;
 static int32_t current_state = MACHINE_STATE_EMPTY;
 
+static int teardown = 0;
+
 struct ColorIntensity {
     int red;
     int green;
@@ -125,6 +127,13 @@ void display_startup_error(void) {
     }
 }
 
+// clear LEDs, let's say during shutdown
+void tearDownStatusLEDs() {
+	LOGI("Calling Status LED TearDown!");
+	pStrip_a->clear(pStrip_a, 50);
+	teardown = 1;
+}
+
 void vStatusLEDTask(void *pvParameters) {
     initialize();
 
@@ -228,6 +237,10 @@ void vStatusLEDTask(void *pvParameters) {
 
             default:
                 LOGE("Status LED failed to react to current state.");
+        }
+
+        while (teardown == 1) {
+            vTaskDelay(pdMS_TO_TICKS(100));
         }
     }
 
