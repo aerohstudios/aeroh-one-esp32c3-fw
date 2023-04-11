@@ -2,7 +2,7 @@ menu "Aeroh One Firmware Config"
 
     config APP_ID
         string "Application ID"
-        default "aeroh_one"
+        default "aeroh_link"
         help
             Application identifier that is used by the logging module, and the storage module.
             If you change this, the namespace on the storage module will change, and therefore,
