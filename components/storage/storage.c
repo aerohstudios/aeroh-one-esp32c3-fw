@@ -121,3 +121,20 @@ error_t storage_set_blob(const char * key, const void * value, size_t length) {
 
     return eval_return_value(nvs_open_err, nvs_set_blob_err, ESP_ERR_NVS_NOT_ENOUGH_SPACE);
 }
+
+error_t storage_reset_mqtt_credentials(void) {
+	nvs_handle_t nvs_handle;
+	esp_err_t nvs_open_err = nvs_open(CONFIG_APP_ID, NVS_READWRITE, &nvs_handle);
+
+	if (nvs_open_err == ESP_OK) {
+		nvs_erase_key(nvs_handle, "certificate_pem");
+		nvs_erase_key(nvs_handle, "certificate_public_key");
+		nvs_erase_key(nvs_handle, "certificate_private_key");
+		nvs_erase_key(nvs_handle, "thing_name");
+		nvs_erase_key(nvs_handle, "root_ca");
+		nvs_erase_key(nvs_handle, "mqtt_uri");
+	}
+	nvs_close(nvs_handle);
+
+	return SUCCESS;
+}
