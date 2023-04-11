@@ -129,9 +129,9 @@ void vStatusLEDTask(void *pvParameters) {
     initialize();
 
     while(1) {
-	LOGI("STATUS LED State Update: %d", get_current_state_from_ram());
+        LOGI("STATUS LED State Update: %d", get_current_state_from_ram());
 
-	current_state = get_current_state_from_ram();
+        current_state = get_current_state_from_ram();
 
         switch(current_state) {
             case MACHINE_STATE_EMPTY:
