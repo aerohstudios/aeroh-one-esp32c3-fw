@@ -43,49 +43,78 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
             LOGI("Process Incoming data");
 
             cJSON *root = cJSON_Parse(event->data);
-            int cmd_len = cJSON_GetArraySize(root);
-            LOGI("Got cmd_len %d", cmd_len);
-            // [0] cmd_name
-            char * cmd_name = "";
-            if (cmd_len > 0) {
-                cmd_name = cJSON_GetArrayItem(root, 0)->valuestring;
-                LOGI("Got cmd_name = %s", cmd_name);
+
+            LOGI("Created ROOT");
+
+            char * request_id = "";
+            cJSON *cJSONrequestId = cJSON_GetObjectItemCaseSensitive(root, "requestId");
+            if (cJSON_IsString(cJSONrequestId) && cJSONrequestId->valuestring != NULL) {
+                request_id = cJSONrequestId->valuestring;
+                LOGI("Got Request ID: %s", request_id);
             }
 
-            // [1] action_type
+            char * command = "";
+            cJSON *cJSONcommand = cJSON_GetObjectItemCaseSensitive(root, "command");
+            if (cJSON_IsString(cJSONcommand) && cJSONcommand->valuestring != NULL) {
+                command = cJSONcommand->valuestring;
+                LOGI("Got Request ID: %s", command);
+            }
+
             char * action_type = "";
-            if (cmd_len > 1) {
-                action_type = cJSON_GetArrayItem(root, 1)->valuestring;
+            cJSON *cJSONactionType = cJSON_GetObjectItemCaseSensitive(root, "actionType");
+            if (cJSON_IsString(cJSONactionType) && cJSONactionType->valuestring != NULL) {
+                action_type = cJSONactionType->valuestring;
+                LOGI("Got Request ID: %s", action_type);
             }
 
-            // [2] action_value
             char * action_value = "";
-            if (cmd_len > 2) {
-                action_value = cJSON_GetArrayItem(root, 2)->valuestring;
+            cJSON *cJSONactionValue = cJSON_GetObjectItemCaseSensitive(root, "actionValue");
+            if (cJSON_IsString(cJSONactionValue) && cJSONactionValue->valuestring != NULL) {
+                action_value = cJSONactionValue->valuestring;
+                LOGI("Got Request ID: %s", action_value);
             }
 
-            if (strcmp(cmd_name, "power") == 0 &&
+            char response_topic_name[128];
+            sprintf(response_topic_name, "%s/responses", client_id);
+
+            cJSON *response = cJSON_CreateObject();
+            cJSON_AddStringToObject(response, "requestId", request_id);
+            cJSON_AddStringToObject(response, "status", "success");
+
+            if (strcmp(command, "power") == 0 &&
                     strcmp(action_type, "toggle") == 0) {
                 LOGI("Going to toggle power");
                 iris_play_from_memory(0);
-            } else if (strcmp(cmd_name, "speed") == 0 &&
+            } else if (strcmp(command, "speed") == 0 &&
                     strcmp(action_type, "change") == 0) {
                 LOGI("Going to change speed");
                 iris_play_from_memory(1);
-            } else if (strcmp(cmd_name, "record") == 0 &&
+            } else if (strcmp(command, "record") == 0 &&
                     strcmp(action_type, "power") == 0 &&
 			        strcmp(action_value, "toggle") == 0) {
                 LOGI("Going to change speed");
                 iris_record_into_memory(0);
-            } else if (strcmp(cmd_name, "record") == 0 &&
+            } else if (strcmp(command, "record") == 0 &&
                     strcmp(action_type, "speed") == 0 &&
 			        strcmp(action_value, "change") == 0) {
                 LOGI("Going to change speed");
                 iris_record_into_memory(1);
+            } else if (strcmp(command, "firmware") == 0 &&
+                    strcmp(action_type, "version") == 0) {
+                char * firmware_version = "0.1.0";
+
+                cJSON_AddStringToObject(response, "version", firmware_version);
+
             } else {
+                cJSON_AddStringToObject(response, "status", "failed");
+                cJSON_AddStringToObject(response, "error", "cannot understand request");
+
                 LOGE("Cannot understand command: \"%s\"; action_type: \"%s\"; action_value: \"%s\";",
-                        cmd_name, action_type, action_value);
+                        command, action_type, action_value);
             }
+
+            char * response_str = cJSON_Print(response);
+            esp_mqtt_client_publish(client, response_topic_name, response_str, strlen(response_str), 1, 0);
 
             break;
         case MQTT_EVENT_SUBSCRIBED:
