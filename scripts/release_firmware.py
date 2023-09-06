@@ -66,6 +66,10 @@ def release_firmware():
         firmware_size = os.path.getsize(repo_directory + "/" + firmware_path)
         print("Firmware size: " + human_readable_size(firmware_size))
 
+        run_command(f"git add sdkconfig")
+        run_command(f"git commit -m 'version bump to {str(firmwareVersion)}'")
+        run_command(f"git push origin main")
+
         # upload to s3
         bucket_name = "aeroh-ota"
         file_name = f"aeroh-link-fw-{str(firmwareVersion)}.bin"
