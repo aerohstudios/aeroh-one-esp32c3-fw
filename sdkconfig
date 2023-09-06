@@ -143,10 +143,11 @@ CONFIG_PARTITION_TABLE_MD5=y
 # end of Partition Table
 
 #
-# Aeroh One Firmware Config
+# Aeroh Link Firmware Config
 #
-CONFIG_APP_ID="aeroh_one"
-# end of Aeroh One Firmware Config
+CONFIG_APP_ID="aeroh_link"
+CONFIG_FIRMWARE_VERSION="0.1.1"
+# end of Aeroh Link Firmware Config
 
 #
 # Compiler options

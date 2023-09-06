@@ -1,4 +1,4 @@
-menu "Aeroh One Firmware Config"
+menu "Aeroh Link Firmware Config"
 
     config APP_ID
         string "Application ID"
@@ -8,4 +8,14 @@ menu "Aeroh One Firmware Config"
             If you change this, the namespace on the storage module will change, and therefore,
             the device will act as a new devices, without any data. Restoring the old value
             will have the reverse effect.
+    config FIRMWARE_VERSION
+        string "Firmware Version"
+        default "0.0.0"
+        help
+            Firmware Version currently installed on the device. This will be used to determine
+            if the device requires a firmware update. So, disregard the default value, and always
+            refer the value in ./sdkconfig file. The value in sdkconfig is meant to be updated using
+            a script in the ./scripts/ directory that also publishes the release as a release tag on
+            github, and on AWS S3 bucket.
+            Also read: https://aeroh.atlassian.net/wiki/spaces/HE/pages/11403265/How+To+Release+a+new+Firmware
 endmenu

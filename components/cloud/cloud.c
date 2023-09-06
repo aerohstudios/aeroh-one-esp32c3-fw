@@ -101,9 +101,8 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
                 iris_record_into_memory(1);
             } else if (strcmp(command, "firmware") == 0 &&
                     strcmp(action_type, "version") == 0) {
-                char * firmware_version = "0.1.0";
 
-                cJSON_AddStringToObject(response, "version", firmware_version);
+                cJSON_AddStringToObject(response, "version", CONFIG_FIRMWARE_VERSION);
 
             } else {
                 cJSON_AddStringToObject(response, "status", "failed");
