@@ -36,6 +36,11 @@ def release_firmware():
     option = input("Accept the new version? \n[y/Y] Yes \n[n/N] No \ny,[N]:").strip()
 
     if option in ["y", "Y"]:
+        print("Checking current working directory is clean")
+        if run_command("git status --porcelain"):
+            print("Working directory is not clean. Exiting.")
+            exit(1)
+
         print("Updating version")
         # ask for change log
         changelog = input("Enter changelog: \n").strip()
