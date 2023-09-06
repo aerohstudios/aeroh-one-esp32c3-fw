@@ -49,12 +49,14 @@ def release_firmware():
         repo_directory = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         print("Repo directory: " + repo_directory)
 
+        print("========> Step #1 <========")
         print("Updating version inside the firmware by updating sdkconfig file")
         sdkconfig = open("sdkconfig").read()
         sdkconfig = sdkconfig.replace(f"CONFIG_FIRMWARE_VERSION=\"{current_latest_version[1:]}\"", f"CONFIG_FIRMWARE_VERSION=\"{str(firmwareVersion)[1:]}\"")
         open("sdkconfig", "w").write(sdkconfig)
         print("Done")
 
+        print("========> Step #2 <========")
         print("Building firmware...")
         run_command(f"cd {repo_directory}")
         run_command(f". ~/esp/esp-idf/export.sh")
@@ -66,11 +68,13 @@ def release_firmware():
         firmware_size = os.path.getsize(repo_directory + "/" + firmware_path)
         print("Firmware size: " + human_readable_size(firmware_size))
 
+        print("========> Step #3 <========")
         run_command(f"git add sdkconfig")
         run_command(f"git commit -m 'version bump to {str(firmwareVersion)}'")
         run_command(f"git push origin main")
 
         # upload to s3
+        print("========> Step #4 <========")
         bucket_name = "aeroh-ota"
         file_name = f"aeroh-link-fw-{str(firmwareVersion)}.bin"
         bucket_path = f"link/{file_name}"
@@ -82,6 +86,7 @@ def release_firmware():
         print(f"Since this script doesn't have access to AWS, please open this link: {upload_link}.\nWe have made the file available in the repo directory: {repo_directory}")
 
         # tag release
+        print("========> Step #5 <========")
         additional_information = "\n\nPresence of this tag indicate that the firmware is available to download from ota.aeroh.org.\nFollow these instructions at https://aeroh.atlassian.net/wiki/spaces/HE/pages/11403265/How+To+Release+a+new+Firmware to understand how to release a firmware to users"
         run_command(f"git tag {firmwareVersion} -m \"Aeroh Link Firmware {firmwareVersion}\" -m \"{changelog}{additional_information}\"")
 
