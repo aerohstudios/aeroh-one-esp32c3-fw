@@ -13,7 +13,7 @@ def human_readable_size(size, decimal_places=2):
 
 def release_firmware():
     run_command("git fetch")
-    current_latest_version = run_command("git tag | head").strip().decode("utf-8")
+    current_latest_version = run_command("git tag | tail -1").strip().decode("utf-8")
     firmwareVersion = FirmwareVersion(current_latest_version)
 
     print("Found the current latest version to be: " + str(firmwareVersion))
