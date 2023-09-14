@@ -15,6 +15,7 @@ void app_main(void)
 {
     LOGI("v%s Started.", get_fw_version_string());
     LOGI("FreeRTOS Kernel Version: %s", tskKERNEL_VERSION_NUMBER);
+    LOGI("Aeroh Firmware Version: %s", CONFIG_FIRMWARE_VERSION);
 
     if (initialize_flash_store() != SUCCESS) {
         LOGE("Couldn't initialize flash store!");

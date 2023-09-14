@@ -4,6 +4,8 @@
 
 #include "mqtt_client.h"
 #include "esp_tls.h"
+#include "esp_http_client.h"
+#include "esp_https_ota.h"
 #include "driver/rmt.h"
 
 #include "logging.h"
@@ -14,6 +16,8 @@
 
 #include "cloud.h"
 
+#include "ota_certificate.h"
+
 static char * root_ca = NULL;
 static char * client_crt = NULL;
 static char * client_key = NULL;
@@ -21,6 +25,8 @@ static char * client_id = NULL;
 static char * mqtt_uri = NULL;
 
 static bool mqtt_initialized = false;
+
+esp_err_t do_firmware_update(char * url);
 
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 {
@@ -47,10 +53,17 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
             LOGI("Created ROOT");
 
             char * request_id = "";
-            cJSON *cJSONrequestId = cJSON_GetObjectItemCaseSensitive(root, "requestId");
+            cJSON *cJSONrequestId = cJSON_GetObjectItemCaseSensitive(root, "request_id");
             if (cJSON_IsString(cJSONrequestId) && cJSONrequestId->valuestring != NULL) {
                 request_id = cJSONrequestId->valuestring;
                 LOGI("Got Request ID: %s", request_id);
+            }
+
+            char *original_request_token = "";
+            cJSON *cJSONoriginalRequestToken = cJSON_GetObjectItemCaseSensitive(root, "original_request_token");
+            if (cJSON_IsString(cJSONoriginalRequestToken) && cJSONoriginalRequestToken->valuestring != NULL) {
+                original_request_token = cJSONoriginalRequestToken->valuestring;
+                LOGI("Got Original Request Token: %s", original_request_token);
             }
 
             char * command = "";
@@ -61,14 +74,14 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
             }
 
             char * action_type = "";
-            cJSON *cJSONactionType = cJSON_GetObjectItemCaseSensitive(root, "actionType");
+            cJSON *cJSONactionType = cJSON_GetObjectItemCaseSensitive(root, "action_type");
             if (cJSON_IsString(cJSONactionType) && cJSONactionType->valuestring != NULL) {
                 action_type = cJSONactionType->valuestring;
                 LOGI("Got Request ID: %s", action_type);
             }
 
             char * action_value = "";
-            cJSON *cJSONactionValue = cJSON_GetObjectItemCaseSensitive(root, "actionValue");
+            cJSON *cJSONactionValue = cJSON_GetObjectItemCaseSensitive(root, "action_value");
             if (cJSON_IsString(cJSONactionValue) && cJSONactionValue->valuestring != NULL) {
                 action_value = cJSONactionValue->valuestring;
                 LOGI("Got Request ID: %s", action_value);
@@ -79,31 +92,49 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 
             cJSON *response = cJSON_CreateObject();
             cJSON_AddStringToObject(response, "requestId", request_id);
-            cJSON_AddStringToObject(response, "status", "success");
+            cJSON_AddStringToObject(response, "original_request_token", original_request_token);
 
             if (strcmp(command, "power") == 0 &&
                     strcmp(action_type, "toggle") == 0) {
                 LOGI("Going to toggle power");
                 iris_play_from_memory(0);
+                cJSON_AddStringToObject(response, "status", "success");
             } else if (strcmp(command, "speed") == 0 &&
                     strcmp(action_type, "change") == 0) {
                 LOGI("Going to change speed");
                 iris_play_from_memory(1);
+                cJSON_AddStringToObject(response, "status", "success");
             } else if (strcmp(command, "record") == 0 &&
                     strcmp(action_type, "power") == 0 &&
 			        strcmp(action_value, "toggle") == 0) {
                 LOGI("Going to change speed");
                 iris_record_into_memory(0);
+                cJSON_AddStringToObject(response, "status", "success");
             } else if (strcmp(command, "record") == 0 &&
                     strcmp(action_type, "speed") == 0 &&
 			        strcmp(action_value, "change") == 0) {
                 LOGI("Going to change speed");
                 iris_record_into_memory(1);
+                cJSON_AddStringToObject(response, "status", "success");
             } else if (strcmp(command, "firmware") == 0 &&
                     strcmp(action_type, "version") == 0) {
 
                 cJSON_AddStringToObject(response, "version", CONFIG_FIRMWARE_VERSION);
+                cJSON_AddStringToObject(response, "status", "success");
+            } else if (strcmp(command, "firmware") == 0 &&
+                    strcmp(action_type, "update") == 0) {
 
+                char *firmware_url = "";
+                cJSON *cJSONfirmwareUrl = cJSON_GetObjectItemCaseSensitive(root, "firmware_url");
+                if (cJSON_IsString(cJSONfirmwareUrl) && cJSONfirmwareUrl->valuestring != NULL) {
+                    firmware_url = cJSONfirmwareUrl->valuestring;
+                    LOGI("Got : %s", firmware_url);
+                }
+
+                do_firmware_update(firmware_url);
+
+                cJSON_AddStringToObject(response, "action_type", "downloading");
+                cJSON_AddStringToObject(response, "status", "success");
             } else {
                 cJSON_AddStringToObject(response, "status", "failed");
                 cJSON_AddStringToObject(response, "error", "cannot understand request");
@@ -139,6 +170,21 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
     return ESP_OK;
 }
 
+// https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/esp_https_ota.html
+esp_err_t do_firmware_update(char * url)
+{
+    esp_http_client_config_t config = {
+        .url = url,
+        .cert_pem = (char *) ota_certificate_crt
+    };
+    esp_err_t ret = esp_https_ota(&config);
+    if (ret == ESP_OK) {
+        esp_restart();
+    } else {
+        return ESP_FAIL;
+    }
+    return ESP_OK;
+}
 
 static void start_mqtt_client()
 {
