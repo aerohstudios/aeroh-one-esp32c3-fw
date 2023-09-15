@@ -131,10 +131,13 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
                     LOGI("Got : %s", firmware_url);
                 }
 
-                do_firmware_update(firmware_url);
-
                 cJSON_AddStringToObject(response, "action_type", "downloading");
                 cJSON_AddStringToObject(response, "status", "success");
+                char * response_str = cJSON_Print(response);
+                esp_mqtt_client_publish(client, response_topic_name, response_str, strlen(response_str), 1, 0);
+                do_firmware_update(firmware_url);
+
+                break;
             } else {
                 cJSON_AddStringToObject(response, "status", "failed");
                 cJSON_AddStringToObject(response, "error", "cannot understand request");
